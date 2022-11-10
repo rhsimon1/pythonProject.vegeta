@@ -2,10 +2,12 @@ import sys  # System-specific parameters and functions
 import pygame  # Access Pygame functionality
 from pygame import sprite
 # import the class settings from the Settings file
-from goku import Goku  # import the goku class from the Goku file
+# import the goku class from the Goku file
+from goku import Goku
 from bullet import Bullet
 from settings import Settings
 from vegeta import Vegeta
+
 
 class AlienInvasion:
     """ Overall class to manage game assets and behavior """
@@ -42,7 +44,6 @@ class AlienInvasion:
             self._update_bullets()
 
             # Make the most recently drawn screen visible.
-
 
             self._update_screen()
 
@@ -123,26 +124,29 @@ class AlienInvasion:
 
         vegeta = Vegeta(self)
         print('first math')
-        vegeta_width = vegeta.rect.width
-        available_space_x = self.settings.screen_width - (2*vegeta_width)
+        vegeta_width, vegeta_height = vegeta.rect.size
+        available_space_x = self.settings.screen_width - (vegeta_width)
         print(f'available space: {available_space_x} settings.screen_width: {self.settings.screen_width} - 2*vegeta_width: {2*vegeta_width}')
-        number_vegeta_x = available_space_x // (2*vegeta_width)
-        print(number_vegeta_x)
-        print(f'available_space_x:   // 2*vegeta_width: {2*vegeta_width}')
-        #Create the first row of vegeta
-        for vegeta_number in range(number_vegeta_x):
-            self._creat_alien(vegeta_number)
+        number_vegeta_x = available_space_x // (2* vegeta_width)
+        #Determine the number of rows of aliens that fit on the screen
+        goku_height = self.goku_ai.goku_rect.height
+        available_space_y = (self.settings.screen_height - (3*vegeta_height) - goku_height)
+        number_rows = available_space_y // (2*goku_height)
 
+        # Create the full fleet of aliens.
+        for row_number in range(number_rows):
+            for vegeta_number in range(number_vegeta_x):
+                self._creat_alien(vegeta_number, row_number)
 
-
-
-    def _creat_alien(self,vegeta_number):
+    def _creat_alien(self, vegeta_number, row_number):
         vegeta = Vegeta(self)
-        vegeta_width = vegeta.rect.width
+        vegeta_width, vegeta_height = vegeta.rect.size
         # vegeta_width doesn't change only vegeta_number changes after every iteration. vegeta_width/X coordinate is a constant.
         vegeta.x = vegeta_width + 2 * vegeta_width * vegeta_number
         vegeta.rect.x = vegeta.x
+        vegeta.rect.y = vegeta_height + 2 * vegeta.rect.height * row_number
         self.vegetas.add(vegeta)
+
 
 if __name__ == '__main__':
     # Make a game instance, and run the game.
