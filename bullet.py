@@ -17,7 +17,7 @@ class Bullet(Sprite):
                                 self.settings.bullet_height)
 
         print("made it here")
-        self.rect.midtop = ai_game.goku_ai.goku_rect.midtop
+        self.rect.midtop = ai_game.goku_ai.rect.midtop
         print('stopped here')
         # Store the bullet's postion as a decimal value.
         self.y = float(self.rect.y)

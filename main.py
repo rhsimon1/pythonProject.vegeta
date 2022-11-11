@@ -7,7 +7,8 @@ from bullet import Bullet
 from settings import Settings
 from vegeta import Vegeta
 from random import randint
-
+from time import sleep
+from gamestats import Gamestats
 class AlienInvasion:
     """ Overall class to manage game assets and behavior """
 
@@ -21,6 +22,7 @@ class AlienInvasion:
         self.settings.screen_height = self.screen.get_rect().height
         pygame.display.set_caption("Alien Invasion")  # Set the display caption to Alien Invasion
         self.goku_ai = Goku(self)
+        self.stats = Gamestats(self)
         self.bullets = pygame.sprite.Group()
         self.vegetas = pygame.sprite.Group()
         self._create_fleet()
@@ -109,6 +111,11 @@ class AlienInvasion:
         self._check_fleet_edges()
         self.vegetas.update()
 
+        # Look for alien-ship collisions.
+        if pygame.sprite.spritecollideany(self.goku_ai, self.vegetas):
+            self._goku_hit()
+            print(self.stats.ships_left)
+
     def _update_bullets(self):
         # Show bullets on screen
         self.bullets.update()
@@ -117,9 +124,16 @@ class AlienInvasion:
             if bullet.rect.bottom <= 0:
                 self.bullets.remove(bullet)
 
+        self._check_bullet_vegeta_collison()
         # Check for any bullets that have collided with vegeta
         # If so, get rid of the bullet and vegeta
-            collision = pygame.sprite.groupcollide(self.bullets, self.vegetas, True, True)
+
+    def _check_bullet_vegeta_collison(self):
+        collision = pygame.sprite.groupcollide(self.bullets, self.vegetas, True, True)
+        if not self.vegetas:
+            # Destroy existing bullets and create new fleet.
+            self.bullets.empty()
+            self._create_fleet()
 
     def _create_fleet(self):
         """Create a fleet of aliens"""
@@ -134,7 +148,7 @@ class AlienInvasion:
         number_vegeta_x = available_space_x // (5* vegeta_width)
 
         #Determine the number of rows of aliens that fit on the screen
-        goku_height = self.goku_ai.goku_rect.height
+        goku_height = self.goku_ai.rect.height
         available_space_y = (self.settings.screen_height - (3*vegeta_height) - goku_height)
         number_rows = available_space_y // (5*goku_height)
 
@@ -161,6 +175,7 @@ class AlienInvasion:
         for vegeta in self.vegetas.sprites():
             if vegeta.check_edges():
                 self._change_fleet_direction()
+                break
 
 
     def _change_fleet_direction(self):
@@ -169,6 +184,20 @@ class AlienInvasion:
             vegeta.rect.y += self.settings.fleet_drop_speed
         self.settings.fleet_direction *= -1
 
+    def _goku_hit(self):
+        """Respond to the ship being hit by an alien."""
+        # Decrement ships_left.
+        self.stats.ships_left -= 1
+        # Get rid of any remaining vegeta and bullets
+        self.vegetas.empty()
+        self.bullets.empty()
+
+        #Create a new fleet and center the ship.
+        self._create_fleet()
+        self.goku_ai.center_goku()
+
+        # Pause
+        sleep(0.5)
 
 
 if __name__ == '__main__':
