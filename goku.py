@@ -8,8 +8,7 @@ class Goku():
         self.screen = alien_invasion_game.screen
         # Get the rect of alien invasion so that you can assign to the image
         self.screen_rect = alien_invasion_game.screen.get_rect()
-        print(self.screen_rect.right)
-        print(self.screen_rect.left)
+
         self.settings = alien_invasion_game.settings
 
         # Load the ship image and get its rect.
@@ -20,17 +19,11 @@ class Goku():
         # Place the image at the midbottom
         # insure this variable comes before x and y value since this is the starting position
         self.goku_rect.midbottom = self.screen_rect.midbottom
-        print('1. Displaying Goku midbottom')
-        print(self.goku_rect)
+
 
         # Assign x to self.goku_rect.x value as a float
         self.x = float(self.goku_rect.x)
-        print('2.Displaying x float')
         self.y = float(self.goku_rect.y)
-        print('3.Displaying y float')
-
-        print(self.goku_rect)
-
         # Assign movement Flags
         self.moving_right = False
         self.moving_left = False

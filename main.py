@@ -1,13 +1,12 @@
 import sys  # System-specific parameters and functions
 import pygame  # Access Pygame functionality
-from pygame import sprite
 # import the class settings from the Settings file
 # import the goku class from the Goku file
 from goku import Goku
 from bullet import Bullet
 from settings import Settings
 from vegeta import Vegeta
-
+from random import randint
 
 class AlienInvasion:
     """ Overall class to manage game assets and behavior """
@@ -21,10 +20,8 @@ class AlienInvasion:
         self.settings.screen_width = self.screen.get_rect().width
         self.settings.screen_height = self.screen.get_rect().height
         pygame.display.set_caption("Alien Invasion")  # Set the display caption to Alien Invasion
-        print('1. Displaying goku')
         self.goku_ai = Goku(self)
         self.bullets = pygame.sprite.Group()
-        print('making a group')
         self.vegetas = pygame.sprite.Group()
         self._create_fleet()
 
@@ -40,8 +37,9 @@ class AlienInvasion:
             self.goku_ai.update_movement()
 
             # Update bullets with this method
-
             self._update_bullets()
+
+            self._update_vegetas()
 
             # Make the most recently drawn screen visible.
 
@@ -106,34 +104,42 @@ class AlienInvasion:
 
         pygame.display.flip()
 
+    def _update_vegetas(self):
+        """Update the positions of all aliens in the fleet"""
+        self._check_fleet_edges()
+        self.vegetas.update()
+
     def _update_bullets(self):
         # Show bullets on screen
-        print('Im here')
         self.bullets.update()
-        print("second here")
         # Get rid of bullets that have disappeared.
         for bullet in self.bullets.copy():
-            if bullet.bullet_rect.bottom <= 0:
+            if bullet.rect.bottom <= 0:
                 self.bullets.remove(bullet)
-            print(len(self.bullets))
+
+        # Check for any bullets that have collided with vegeta
+        # If so, get rid of the bullet and vegeta
+            collision = pygame.sprite.groupcollide(self.bullets, self.vegetas, True, True)
 
     def _create_fleet(self):
         """Create a fleet of aliens"""
         #Make Vegeta.
         # Spacing between each Vegeta is equal to one vegeta width.
-
+        #Create an instance of Vegeta with attributes of AI
         vegeta = Vegeta(self)
-        print('first math')
+        # We need the width and height of an alien, so with this we use the attribute size, which contain a tuple
+        # with the width and height of vegeta(object)
         vegeta_width, vegeta_height = vegeta.rect.size
         available_space_x = self.settings.screen_width - (vegeta_width)
-        print(f'available space: {available_space_x} settings.screen_width: {self.settings.screen_width} - 2*vegeta_width: {2*vegeta_width}')
-        number_vegeta_x = available_space_x // (2* vegeta_width)
+        number_vegeta_x = available_space_x // (5* vegeta_width)
+
         #Determine the number of rows of aliens that fit on the screen
         goku_height = self.goku_ai.goku_rect.height
         available_space_y = (self.settings.screen_height - (3*vegeta_height) - goku_height)
-        number_rows = available_space_y // (2*goku_height)
+        number_rows = available_space_y // (5*goku_height)
 
         # Create the full fleet of aliens.
+
         for row_number in range(number_rows):
             for vegeta_number in range(number_vegeta_x):
                 self._creat_alien(vegeta_number, row_number)
@@ -143,9 +149,26 @@ class AlienInvasion:
         vegeta_width, vegeta_height = vegeta.rect.size
         # vegeta_width doesn't change only vegeta_number changes after every iteration. vegeta_width/X coordinate is a constant.
         vegeta.x = vegeta_width + 2 * vegeta_width * vegeta_number
+        vegeta.y = vegeta_height + 2 * vegeta.rect.height * row_number
+
         vegeta.rect.x = vegeta.x
-        vegeta.rect.y = vegeta_height + 2 * vegeta.rect.height * row_number
+        vegeta.rect.y = vegeta.y
         self.vegetas.add(vegeta)
+
+    def _check_fleet_edges(self):
+        """Respond appropriately if any aliens have reached an edge."""
+
+        for vegeta in self.vegetas.sprites():
+            if vegeta.check_edges():
+                self._change_fleet_direction()
+
+
+    def _change_fleet_direction(self):
+        """Drop the entrie fleet and change the fleet's direction."""
+        for vegeta in self.vegetas.sprites():
+            vegeta.rect.y += self.settings.fleet_drop_speed
+        self.settings.fleet_direction *= -1
+
 
 
 if __name__ == '__main__':

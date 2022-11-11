@@ -13,14 +13,14 @@ class Bullet(Sprite):
         self.color = self.settings.bullet_color
 
         # Create a bullet rect at (0,0) and then set the correct position.
-        self.bullet_rect = pygame.Rect(0, 0, self.settings.bullet_width,
+        self.rect = pygame.Rect(0, 0, self.settings.bullet_width,
                                 self.settings.bullet_height)
 
         print("made it here")
-        self.bullet_rect.midtop = ai_game.goku_ai.goku_rect.midtop
+        self.rect.midtop = ai_game.goku_ai.goku_rect.midtop
         print('stopped here')
         # Store the bullet's postion as a decimal value.
-        self.y = float(self.bullet_rect.y)
+        self.y = float(self.rect.y)
         print('fired')
 
     #This is a method from the SPRITE class
@@ -29,10 +29,10 @@ class Bullet(Sprite):
         # Update the decimal position of the bullet.
         self.y -= self.settings.bullet_speed
         # Update the rect position
-        self.bullet_rect.y = self.y
+        self.rect.y = self.y
         print('done with this')
 
 
     def draw_bullet(self):
         """Draw the bullet to the screen"""
-        pygame.draw.rect(self.screen, self.color, self.bullet_rect)
+        pygame.draw.rect(self.screen, self.color, self.rect)
