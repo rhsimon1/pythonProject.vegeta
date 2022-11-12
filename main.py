@@ -9,6 +9,7 @@ from vegeta import Vegeta
 from random import randint
 from time import sleep
 from gamestats import Gamestats
+from button import Button
 class AlienInvasion:
     """ Overall class to manage game assets and behavior """
 
@@ -25,6 +26,7 @@ class AlienInvasion:
         self.stats = Gamestats(self)
         self.bullets = pygame.sprite.Group()
         self.vegetas = pygame.sprite.Group()
+        self.play_button = Button(self, "Play")
         self._create_fleet()
 
     def run_game(self):
@@ -34,16 +36,17 @@ class AlienInvasion:
 
             self._check_events()
 
-            # Update Goku image movement
+            if self.stats.game_active:
+                # Update Goku image movement
 
-            self.goku_ai.update_movement()
+                self.goku_ai.update_movement()
 
-            # Update bullets with this method
-            self._update_bullets()
+                # Update bullets with this method
+                self._update_bullets()
 
-            self._update_vegetas()
+                self._update_vegetas()
 
-            # Make the most recently drawn screen visible.
+                # Make the most recently drawn screen visible.
 
             self._update_screen()
 
@@ -104,6 +107,9 @@ class AlienInvasion:
             bullet.draw_bullet()
         self.vegetas.draw(self.screen)
 
+        if not self.stats.game_active:
+            self.play_button.draw_button()
+
         pygame.display.flip()
 
     def _update_vegetas(self):
@@ -114,7 +120,9 @@ class AlienInvasion:
         # Look for alien-ship collisions.
         if pygame.sprite.spritecollideany(self.goku_ai, self.vegetas):
             self._goku_hit()
-            print(self.stats.ships_left)
+            print(self.settings.ship_limit)
+
+        self._check_vegeta_bottom()
 
     def _update_bullets(self):
         # Show bullets on screen
@@ -186,18 +194,35 @@ class AlienInvasion:
 
     def _goku_hit(self):
         """Respond to the ship being hit by an alien."""
-        # Decrement ships_left.
-        self.stats.ships_left -= 1
-        # Get rid of any remaining vegeta and bullets
-        self.vegetas.empty()
-        self.bullets.empty()
+        if self.stats.ships_left > 0:
+            # Decrement ships_left.
+            self.stats.ships_left -= 1
+            # Get rid of any remaining vegeta and bullets
+            self.vegetas.empty()
+            self.bullets.empty()
 
-        #Create a new fleet and center the ship.
-        self._create_fleet()
-        self.goku_ai.center_goku()
+            #Create a new fleet and center the ship.
+            self._create_fleet()
+            self.goku_ai.center_goku()
 
-        # Pause
-        sleep(0.5)
+            # Pause
+            sleep(0.5)
+        else:
+            self.stats.game_active = False
+            sys.exit()
+
+    def _check_vegeta_bottom(self):
+        """Check if any aliens have reached the bottom of the screen"""
+        screen_rect = self.screen.get_rect()
+        for vegeta in self.vegetas.sprites():
+            print(f"{vegeta.rect.bottom} and {screen_rect.bottom}")
+
+            if vegeta.rect.bottom >= screen_rect.bottom:
+                # Treat this the same as if the goku got hit.
+                self._goku_hit()
+                break
+
+
 
 
 if __name__ == '__main__':
